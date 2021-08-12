@@ -1,2 +1,2 @@
-# RunInSandbix_Dev
+# RunInSandbox_Dev
 Do not use it, it's for preview tests
