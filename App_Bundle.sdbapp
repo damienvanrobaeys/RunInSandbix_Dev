@@ -1,0 +1,50 @@
+<Applications>
+	<Application>
+		<Name>NPP++</Name>
+		<Path>D:\wdac_tests</Path>
+		<File>npp.7.8.8.Installer.x64.exe</File>		
+		<CommandLine></CommandLine>
+		<Silent_Switch>/S</Silent_Switch>				
+	</Application>	
+	
+	<Application>
+		<Name>NPP++</Name>
+		<Path>D:\wdac_tests</Path>
+		<File>test.ps1</File>		
+		<CommandLine></CommandLine>
+		<Silent_Switch>/S</Silent_Switch>				
+	</Application>	
+	
+	<Application>
+		<Name>winrar</Name>
+		<Path>D:\wdac_tests\winrar</Path>
+		<File>wrar_600_64bit.msi</File>		
+		<CommandLine></CommandLine>
+		<Silent_Switch>/qn</Silent_Switch>				
+	</Application>	
+	
+	<Application>
+		<Name>winrar</Name>
+		<Path>D:\wdac_tests\screentogif</Path>
+		<File>ScreenToGif.2.24.2.Setup.msi</File>		
+		<CommandLine></CommandLine>
+		<Silent_Switch>/qn</Silent_Switch>				
+	</Application>		
+	
+	<Application>
+		<Name>MDT</Name>
+		<Path>D:\wdac_tests\mdt</Path>
+		<File>MicrosoftDeploymentToolkit_x64.msi</File>		
+		<CommandLine></CommandLine>
+		<Silent_Switch>/qn</Silent_Switch>				
+	</Application>			
+	
+	<Application>
+		<Name>winrar</Name>
+		<Path>D:\Verif_OD_Migration\Tool_Sources</Path>
+		<File>Create_Check_Migration_Service.ps1</File>		
+		<CommandLine></CommandLine>
+		<Silent_Switch></Silent_Switch>				
+	</Application>		
+</Applications>
+
