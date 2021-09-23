@@ -75,7 +75,8 @@ If(test-path $Sandbox_Folder)
 		$Add_Folder = $Get_XML_Content.Configuration.ContextMenu_Folder
 		$Add_Intunewin = $Get_XML_Content.Configuration.ContextMenu_Intunewin
 		$Add_MultipleApp = $Get_XML_Content.Configuration.ContextMenu_MultipleApp	
-
+		$Add_Reg = $Get_XML_Content.Configuration.ContextMenu_Reg	
+		
 		$List_Drive = get-psdrive | where {$_.Name -eq "HKCR_SD"}
 		If($List_Drive -ne $null){Remove-PSDrive $List_Drive}
 		New-PSDrive -PSProvider registry -Root HKEY_CLASSES_ROOT -Name HKCR_SD | out-null
@@ -85,18 +86,27 @@ If(test-path $Sandbox_Folder)
 				# REMOVE RUN ON PS1
 				write-host "Removing context menu for PS1"				
 				$PS1_Shell_Registry_Key = "HKCR_SD:\Microsoft.PowerShellScript.1\Shell"
-				$PS1_Basic_Run = "Run the PS1 in Sandbox"
-				$PS1_Parameter_Run = "Run the PS1 in Sandbox with parameters"					
+				$PS1_Basic_Run = "Run PS1 in Sandbox"
+				# $PS1_Parameter_Run = "Run the PS1 in Sandbox with parameters"					
 				Remove_Reg_Item -Reg_Path "$PS1_Shell_Registry_Key\$PS1_Basic_Run"
-				Remove_Reg_Item -Reg_Path "$PS1_Shell_Registry_Key\$PS1_Parameter_Run"			
+				# Remove_Reg_Item -Reg_Path "$PS1_Shell_Registry_Key\$PS1_Parameter_Run"			
 			}
+			
+		If($Add_Reg -eq $True)
+			{
+				# REMOVE RUN ON REG
+				write-host "Removing context menu for REG"				
+				$Reg_Shell_Registry_Key = "HKCR_SD:\regfile\Shell"
+				$Reg_Key_Label = "Test reg file in Sandbox"
+				Remove_Reg_Item -Reg_Path "$REG_Shell_Registry_Key\$Reg_Key_Label"
+			}					
 			
 		If($Add_EXE -eq $True)
 			{
 				# REMOVE RUN ON EXE
 				write-host "Removing context menu for PS1"							
 				$EXE_Shell_Registry_Key = "HKCR_SD:\exefile\Shell"
-				$EXE_Basic_Run = "Run the EXE in Sandbox"
+				$EXE_Basic_Run = "Run EXE in Sandbox"
 				Remove_Reg_Item -Reg_Path "$EXE_Shell_Registry_Key\$EXE_Basic_Run"			
 			}
 
@@ -105,7 +115,7 @@ If(test-path $Sandbox_Folder)
 				# RUN ON MSI
 				write-host "Removing context menu for MSI"				
 				$MSI_Shell_Registry_Key = "HKCR_SD:\Msi.Package\Shell"
-				$MSI_Basic_Run = "Run the MSI in Sandbox"	
+				$MSI_Basic_Run = "Run MSI in Sandbox"	
 				Remove_Reg_Item -Reg_Path "$MSI_Shell_Registry_Key\$MSI_Basic_Run"				
 			}
 			
@@ -142,8 +152,8 @@ If(test-path $Sandbox_Folder)
 				# REMOVE RUN ON VBS
 				write-host "Removing context menu for VBS"				
 				$VBS_Shell_Registry_Key = "HKCR_SD:\VBSFile\Shell"
-				$VBS_Basic_Run = "Run the VBS in Sandbox"
-				$VBS_Parameter_Run = "Run the VBS in Sandbox with parameters"			
+				$VBS_Basic_Run = "Run VBS in Sandbox"
+				$VBS_Parameter_Run = "Run VBS in Sandbox with parameters"			
 				Remove_Reg_Item -Reg_Path "$VBS_Shell_Registry_Key\$VBS_Basic_Run"
 				Remove_Reg_Item -Reg_Path "$VBS_Shell_Registry_Key\$VBS_Parameter_Run"				
 			}
@@ -153,15 +163,15 @@ If(test-path $Sandbox_Folder)
 				write-host "Removing context menu for ZIP"			
 				# RUN ON ZIP				
 				$ZIP_Shell_Registry_Key = "HKCR_SD:\CompressedFolder\Shell"
-				$ZIP_Basic_Run = "Extract the ZIP in Sandbox"	
+				$ZIP_Basic_Run = "Extract ZIP in Sandbox"	
 				Remove_Reg_Item -Reg_Path "$ZIP_Shell_Registry_Key\$ZIP_Basic_Run"		
 
 				# RUN ON ZIP if WinRAR is installed
 				If(test-path "HKCR_SD:\WinRAR.ZIP\Shell")
 					{
 						$ZIP_WinRAR_Shell_Registry_Key = "HKCR_SD:\WinRAR.ZIP\Shell"
-						$ZIP_WinRAR_Basic_Run = "Extract the ZIP in Sandbox"					
-						Remove_Reg_Item -Reg_Path "$ZIP_WinRAR_Shell_Registry_Key\$ZIP_WinRAR_Basic_Run"								
+						# $ZIP_WinRAR_Basic_Run = "Extract ZIP in Sandbox"					
+						Remove_Reg_Item -Reg_Path "$ZIP_WinRAR_Shell_Registry_Key\$ZIP_Basic_Run"								
 					}	
 			}
 

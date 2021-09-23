@@ -83,7 +83,7 @@ Else
 						write-progress -activity $Progress_Activity -percentcomplete 1;
 								
 						$Check_Sources_Files_Count = (get-childitem "$Current_Folder\Sources" -recurse).count
-						If($Check_Sources_Files_Count -eq 21)	
+						If($Check_Sources_Files_Count -eq 22)	
 							{	
 								$Sources_Copied = $False
 								$ProgData = $env:ProgramData
@@ -131,6 +131,7 @@ Else
 												$Add_Folder = $Get_XML_Content.Configuration.ContextMenu_Folder
 												$Add_Intunewin = $Get_XML_Content.Configuration.ContextMenu_Intunewin
 												$Add_MultipleApp = $Get_XML_Content.Configuration.ContextMenu_MultipleApp
+												$Add_Reg = $Get_XML_Content.Configuration.ContextMenu_Reg
 																								
 												If(test-path "$ProgData\Run_in_Sandbox\RunInSandbox.ps1")
 													{													
@@ -167,6 +168,7 @@ Else
 																Export_Reg_Config -Reg_Path "Directory" -Backup_Path "$Destination_folder\Backup_HKRoot_Directory.reg"						
 
 																write-progress -activity $Progress_Activity  -percentcomplete 15;	
+																
 																Add-content $log_file ""		
 																
 																Write_Log -Message_Type "INFO" -Message "Creating a restore point"		
@@ -201,27 +203,55 @@ Else
 																	{
 																		# RUN ON PS1
 																		$PS1_Shell_Registry_Key = "HKCR_SD:\Microsoft.PowerShellScript.1\Shell"
-																		# $PS1_Basic_Run = $Get_Language_File_Content.PowerShell.Basic
-																		# $PS1_Parameter_Run = $Get_Language_File_Content.PowerShell.Parameters
-																		# $ContextMenu_Basic_PS1 = "$PS1_Shell_Registry_Key\$PS1_Basic_Run"
-																		# $ContextMenu_Parameters_PS1 = "$PS1_Shell_Registry_Key\$PS1_Parameter_Run"
-																		$PS1_Basic_Run = "Run the PS1 in Sandbox"
-																		$PS1_Parameter_Run = "Run the PS1 in Sandbox with parameters"						
-																		$ContextMenu_Basic_PS1 = "$PS1_Shell_Registry_Key\Run the PS1 in Sandbox"
-																		$ContextMenu_Parameters_PS1 = "$PS1_Shell_Registry_Key\Run the PS1 in Sandbox with parameters"				
-																		
-																		New-Item -Path $PS1_Shell_Registry_Key -Name $PS1_Basic_Run -force | out-null
-																		New-Item -Path $PS1_Shell_Registry_Key -Name $PS1_Parameter_Run -force | out-null
-																		New-Item -Path $ContextMenu_Basic_PS1 -Name "Command" -force | out-null
-																		New-Item -Path $ContextMenu_Parameters_PS1 -Name "Command" -force | out-null
+	
+																		$PS1_Main_Menu = "Run PS1 in Sandbox"
+																		$PS1_SubMenu_RunAsUser = "Run PS1 as user in Sandbox"
+																		$PS1_SubMenu_RunAsSystem = "Run PS1 as system in Sandbox"
+																		$PS1_SubMenu_RunwithParams = "Run PS1 with parameters in Sandbox"
+
+																		$Main_Menu_Path = "$PS1_Shell_Registry_Key\$PS1_Main_Menu"
+																		New-Item -Path $PS1_Shell_Registry_Key -Name $PS1_Main_Menu -force | out-null
+																		New-ItemProperty -Path $Main_Menu_Path -Name "subcommands" -PropertyType String | out-null
+
+																		New-Item -Path $Main_Menu_Path -Name "Shell" -force | out-null
+																		$Main_Menu_Shell_Path = "$Main_Menu_Path\Shell"
+
+																		# New-Item -Path $Main_Menu_Shell_Path -Name "Shell" -force | out-null
+																		New-Item -Path $Main_Menu_Shell_Path -Name $PS1_SubMenu_RunAsUser -force | out-null
+																		New-Item -Path $Main_Menu_Shell_Path -Name $PS1_SubMenu_RunAsSystem -force | out-null
+																		New-Item -Path $Main_Menu_Shell_Path -Name $PS1_SubMenu_RunwithParams -force | out-null
+
+																		New-Item -Path "$Main_Menu_Shell_Path\$PS1_SubMenu_RunAsUser" -Name "Command" -force | out-null
+																		New-Item -Path "$Main_Menu_Shell_Path\$PS1_SubMenu_RunAsSystem" -Name "Command" -force | out-null
+																		New-Item -Path "$Main_Menu_Shell_Path\$PS1_SubMenu_RunwithParams" -Name "Command" -force | out-null
+
 																		$Command_For_Basic_PS1 = 'C:\\Windows\\system32\\WindowsPowerShell\\v1.0\\powershell.exe -executionpolicy bypass -sta -file C:\\ProgramData\\Run_in_Sandbox\\RunInSandbox.ps1 -NoExit -Command Set-Location -Type PS1Basic -LiteralPath "%V" -ScriptPath "%V"' 
 																		$Command_For_Params_PS1 = 'C:\\Windows\\system32\\WindowsPowerShell\\v1.0\\powershell.exe -executionpolicy bypass -sta -file C:\\ProgramData\\Run_in_Sandbox\\RunInSandbox.ps1 -NoExit -Command Set-Location -Type PS1Params -LiteralPath "%V" -ScriptPath "%V"' 
+																		$Command_For_System_PS1 = 'C:\\Windows\\system32\\WindowsPowerShell\\v1.0\\powershell.exe -executionpolicy bypass -sta -file C:\\ProgramData\\Run_in_Sandbox\\RunInSandbox.ps1 -NoExit -Command Set-Location -Type PS1System -LiteralPath "%V" -ScriptPath "%V"' 
+
+																		Set-Item -Path "$Main_Menu_Shell_Path\$PS1_SubMenu_RunAsUser\command" -Value $Command_For_Basic_PS1 -force | out-null
+																		Set-Item -Path "$Main_Menu_Shell_Path\$PS1_SubMenu_RunwithParams\command" -Value $Command_For_Params_PS1 -force | out-null
+																		Set-Item -Path "$Main_Menu_Shell_Path\$PS1_SubMenu_RunAsSystem\command" -Value $Command_For_System_PS1 -force | out-null
+
+																		New-ItemProperty -Path "$Main_Menu_Path" -Name "icon" -PropertyType String -Value $Sandbox_Icon | out-null
+																		New-ItemProperty -Path "$Main_Menu_Shell_Path\$PS1_SubMenu_RunwithParams" -Name "icon" -PropertyType String -Value $Sandbox_Icon | out-null
+																		New-ItemProperty -Path "$Main_Menu_Shell_Path\$PS1_SubMenu_RunAsUser" -Name "icon" -PropertyType String -Value $Sandbox_Icon | out-null
+																		New-ItemProperty -Path "$Main_Menu_Shell_Path\$PS1_SubMenu_RunAsSystem" -Name "icon" -PropertyType String -Value $Sandbox_Icon | out-null
+
+
+																																				
+																		# New-Item -Path $PS1_Shell_Registry_Key -Name $PS1_Basic_Run -force | out-null
+																		# New-Item -Path $PS1_Shell_Registry_Key -Name $PS1_Parameter_Run -force | out-null
+																		# New-Item -Path $ContextMenu_Basic_PS1 -Name "Command" -force | out-null
+																		# New-Item -Path $ContextMenu_Parameters_PS1 -Name "Command" -force | out-null
+																		# $Command_For_Basic_PS1 = 'C:\\Windows\\system32\\WindowsPowerShell\\v1.0\\powershell.exe -executionpolicy bypass -sta -file C:\\ProgramData\\Run_in_Sandbox\\RunInSandbox.ps1 -NoExit -Command Set-Location -Type PS1Basic -LiteralPath "%V" -ScriptPath "%V"' 
+																		# $Command_For_Params_PS1 = 'C:\\Windows\\system32\\WindowsPowerShell\\v1.0\\powershell.exe -executionpolicy bypass -sta -file C:\\ProgramData\\Run_in_Sandbox\\RunInSandbox.ps1 -NoExit -Command Set-Location -Type PS1Params -LiteralPath "%V" -ScriptPath "%V"' 
 																		# Set the command path
-																		Set-Item -Path "$ContextMenu_Basic_PS1\command" -Value $Command_For_Basic_PS1 -force | out-null
-																		Set-Item -Path "$ContextMenu_Parameters_PS1\command" -Value $Command_For_Params_PS1 -force | out-null
+																		# Set-Item -Path "$ContextMenu_Basic_PS1\command" -Value $Command_For_Basic_PS1 -force | out-null
+																		# Set-Item -Path "$ContextMenu_Parameters_PS1\command" -Value $Command_For_Params_PS1 -force | out-null
 																		# Add Sandbox Icons
-																		New-ItemProperty -Path $ContextMenu_Basic_PS1 -Name "icon" -PropertyType String -Value $Sandbox_Icon | out-null
-																		New-ItemProperty -Path $ContextMenu_Parameters_PS1 -Name "icon" -PropertyType String -Value $Sandbox_Icon | out-null
+																		# New-ItemProperty -Path $ContextMenu_Basic_PS1 -Name "icon" -PropertyType String -Value $Sandbox_Icon | out-null
+																		# New-ItemProperty -Path $ContextMenu_Parameters_PS1 -Name "icon" -PropertyType String -Value $Sandbox_Icon | out-null
 																		Write_Log -Message_Type "INFO" -Message "Context menus for PS1 have been added"																		
 																	}
 																	
@@ -231,7 +261,7 @@ Else
 																	{
 																		# RUN ON INTUNEWIN
 																		$Intunewin_Shell_Registry_Key = "HKCR_SD:\.intunewin"
-																		$Intunewin_Key_Label = "Test the intunewin in Sandbox"
+																		$Intunewin_Key_Label = "Test intunewin in Sandbox"
 																		$Intunewin_Key_Label_Path = "$Intunewin_Shell_Registry_Key\Shell\$Intunewin_Key_Label"
 																		$Intunewin_Command_Path = "$Intunewin_Key_Label_Path\Command"
 																		$Command_for_Intunewin = 'C:\\Windows\\system32\\WindowsPowerShell\\v1.0\\powershell.exe -executionpolicy bypass -sta -windowstyle hidden -file C:\\ProgramData\\Run_in_Sandbox\\RunInSandbox.ps1 -NoExit -Command Set-Location -Type Intunewin -LiteralPath "%V" -ScriptPath "%V"'
@@ -249,9 +279,33 @@ Else
 																		}																	
 																	}
 																	
+															write-progress -activity $Progress_Activity  -percentcomplete 30;		
+															
+															If($Add_Reg -eq $True)
+																	{
+																		# RUN ON REG
+																		$Reg_Shell_Registry_Key = "HKCR_SD:\regfile\Shell"
+																		$Reg_Key_Label = "Test reg file in Sandbox"
+																		$Reg_Key_Label_Path = "$Reg_Shell_Registry_Key\$Reg_Key_Label"
+																		$Reg_Command_Path = "$Reg_Key_Label_Path\Command"
+																		$Command_for_Reg = 'C:\\Windows\\system32\\WindowsPowerShell\\v1.0\\powershell.exe -executionpolicy bypass -sta -windowstyle hidden -file C:\\ProgramData\\Run_in_Sandbox\\RunInSandbox.ps1 -NoExit -Command Set-Location -Type REG -LiteralPath "%V" -ScriptPath "%V"'
+																		If(test-path $Reg_Shell_Registry_Key)
+																		{
+																			new-item $Reg_Key_Label_Path | out-null
+																			new-item $Reg_Command_Path | out-null	
+																			# Set the command path
+																			Set-Item -Path $Reg_Command_Path -Value $Command_for_Reg -force | out-null	
+																			# Add Sandbox Icons
+																			New-ItemProperty -Path $Reg_Key_Label_Path -Name "icon" -PropertyType String -Value $Sandbox_Icon | out-null			
+																			Write_Log -Message_Type "INFO" -Message "Context menus for REG have been added"																									
+																		}																	
+																	}
+																	
+																write-progress -activity $Progress_Activity  -percentcomplete 35;																		
+																	
 																If($Add_MultipleApp -eq $True)
 																	{
-																		# RUN ON INTUNEWIN
+																		# RUN ON bundle app
 																		$MultipleApps_Shell_Registry_Key = "HKCR_SD:\.sdbapp"
 																		$MultipleApps_Key_Label = "Test application bundle in Sandbox"
 																		$MultipleApps_Key_Label_Path = "$MultipleApps_Shell_Registry_Key\Shell\$MultipleApps_Key_Label"
@@ -271,7 +325,7 @@ Else
 																		}																	
 																	}																	
 																
-																write-progress -activity $Progress_Activity  -percentcomplete 30;
+																write-progress -activity $Progress_Activity  -percentcomplete 40;
 
 																If($Add_VBS -eq $True)
 																	{
@@ -282,11 +336,11 @@ Else
 																		# $ContextMenu_Basic_VBS = "$VBS_Shell_Registry_Key\$VBS_Basic_Run"
 																		# $ContextMenu_Parameters_VBS = "$VBS_Shell_Registry_Key\$VBS_Parameter_Run"
 																		
-																		$VBS_Basic_Run = "Run the VBS in Sandbox"
-																		$VBS_Parameter_Run = "Run the VBS in Sandbox with parameters"					
+																		$VBS_Basic_Run = "Run VBS in Sandbox"
+																		$VBS_Parameter_Run = "Run VBS in Sandbox with parameters"					
 																		
-																		$ContextMenu_Basic_VBS = "$VBS_Shell_Registry_Key\Run the VBS in Sandbox"
-																		$ContextMenu_Parameters_VBS = "$VBS_Shell_Registry_Key\Run the VBS in Sandbox with parameters"				
+																		$ContextMenu_Basic_VBS = "$VBS_Shell_Registry_Key\$VBS_Basic_Run"
+																		$ContextMenu_Parameters_VBS = "$VBS_Shell_Registry_Key\$VBS_Parameter_Run"				
 
 																		New-Item -Path $VBS_Shell_Registry_Key -Name $VBS_Basic_Run -force | out-null
 																		New-Item -Path $VBS_Shell_Registry_Key -Name $VBS_Parameter_Run -force | out-null
@@ -303,7 +357,7 @@ Else
 																		Write_Log -Message_Type "INFO" -Message "Context menus for VBS have been added"																		
 																	}
 
-																write-progress -activity $Progress_Activity  -percentcomplete 35;
+																write-progress -activity $Progress_Activity  -percentcomplete 45;
 
 																If($Add_EXE -eq $True)
 																	{
@@ -311,8 +365,8 @@ Else
 																		$EXE_Shell_Registry_Key = "HKCR_SD:\exefile\Shell"
 																		# $EXE_Basic_Run = $Get_Language_File_Content.EXE
 																		# $ContextMenu_Basic_EXE = "$EXE_Shell_Registry_Key\$EXE_Basic_Run"
-																		$EXE_Basic_Run = "Run the EXE in Sandbox"					
-																		$ContextMenu_Basic_EXE = "$EXE_Shell_Registry_Key\Run the EXE in Sandbox"				
+																		$EXE_Basic_Run = "Run EXE in Sandbox"					
+																		$ContextMenu_Basic_EXE = "$EXE_Shell_Registry_Key\$EXE_Basic_Run"				
 
 																		New-Item -Path $EXE_Shell_Registry_Key -Name $EXE_Basic_Run -force | out-null
 																		New-Item -Path $ContextMenu_Basic_EXE -Name "Command" -force | out-null
@@ -324,7 +378,7 @@ Else
 																		Write_Log -Message_Type "INFO" -Message "Context menus for EXE have been added"																		
 																	}
 
-																write-progress -activity $Progress_Activity  -percentcomplete 45;
+																write-progress -activity $Progress_Activity  -percentcomplete 50;
 
 																If($Add_MSI -eq $True)
 																	{
@@ -332,8 +386,8 @@ Else
 																		$MSI_Shell_Registry_Key = "HKCR_SD:\Msi.Package\Shell"
 																		# $MSI_Basic_Run = $Get_Language_File_Content.MSI
 																		# $ContextMenu_Basic_MSI = "$MSI_Shell_Registry_Key\$MSI_Basic_Run"
-																		$MSI_Basic_Run = "Run the MSI in Sandbox"					
-																		$ContextMenu_Basic_MSI = "$MSI_Shell_Registry_Key\Run the MSI in Sandbox"				
+																		$MSI_Basic_Run = "Run MSI in Sandbox"					
+																		$ContextMenu_Basic_MSI = "$MSI_Shell_Registry_Key\$MSI_Basic_Run"				
 
 																		New-Item -Path $MSI_Shell_Registry_Key -Name $MSI_Basic_Run -force | out-null
 																		New-Item -Path $ContextMenu_Basic_MSI -Name "Command" -force | out-null
@@ -354,8 +408,8 @@ Else
 																		$ZIP_Shell_Registry_Key = "HKCR_SD:\CompressedFolder\Shell"
 																		# $ZIP_Basic_Run = $Get_Language_File_Content.ZIP
 																		# $ContextMenu_Basic_ZIP = "$ZIP_Shell_Registry_Key\$ZiP_Basic_Run"
-																		$ZIP_Basic_Run = "Extract the ZIP in Sandbox"						
-																		$ContextMenu_Basic_ZIP = "$ZIP_Shell_Registry_Key\Extract the ZIP in Sandbox"				
+																		$ZIP_Basic_Run = "Extract ZIP in Sandbox"						
+																		$ContextMenu_Basic_ZIP = "$ZIP_Shell_Registry_Key\$ZIP_Basic_Run"				
 
 																		New-Item -Path $ZIP_Shell_Registry_Key -Name $ZiP_Basic_Run -force | out-null
 																		New-Item -Path $ContextMenu_Basic_ZIP -Name "Command" -force | out-null
@@ -374,8 +428,8 @@ Else
 																				$ZIP_WinRAR_Shell_Registry_Key = "HKCR_SD:\WinRAR.ZIP\Shell"
 																				# $ZIP_WinRAR_Basic_Run = $Get_Language_File_Content.ZIP				
 																				# $ContextMenu_Basic_ZIP_RAR = "$ZIP_WinRAR_Shell_Registry_Key\$ZIP_WinRAR_Basic_Run"
-																				$ZIP_WinRAR_Basic_Run = "Extract the ZIP in Sandbox"												
-																				$ContextMenu_Basic_ZIP_RAR = "$ZIP_WinRAR_Shell_Registry_Key\Extract the ZIP in Sandbox"						
+																				$ZIP_WinRAR_Basic_Run = "Extract ZIP in Sandbox"												
+																				$ContextMenu_Basic_ZIP_RAR = "$ZIP_WinRAR_Shell_Registry_Key\$ZIP_WinRAR_Basic_Run"						
 																				
 																				New-Item -Path $ZIP_WinRAR_Shell_Registry_Key -Name $ZIP_WinRAR_Basic_Run -force | out-null
 																				New-Item -Path $ContextMenu_Basic_ZIP_RAR -Name "Command" -force | out-null
