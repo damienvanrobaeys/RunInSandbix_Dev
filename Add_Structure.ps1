@@ -4,7 +4,7 @@
 # Twitter: https://twitter.com/syst_and_deploy
 #***************************************************************************************************************
 $TEMP_Folder = $env:temp
-$Log_File = "$TEMP_Folder\Enable_RunInSandbox.log"
+$Log_File = "$TEMP_Folder\RunInSandbox_Install.log"
 $Current_Folder = split-path $MyInvocation.MyCommand.Path
 
 If(test-path $Log_File){remove-item $Log_File}
@@ -134,7 +134,9 @@ Else
 												$Add_Reg = $Get_XML_Content.Configuration.ContextMenu_Reg
 																								
 												If(test-path "$ProgData\Run_in_Sandbox\RunInSandbox.ps1")
-													{													
+													{					
+														$Backup_Folder = "$Destination_folder\Registry_Backup"
+														new-item $Backup_Folder -Type Directory -Force | out-null
 														write-progress -activity $Progress_Activity  -percentcomplete 5;
 														
 														$List_Drive = get-psdrive | where {$_.Name -eq "HKCR_SD"}
@@ -159,13 +161,13 @@ Else
 															{
 																write-progress -activity $Progress_Activity  -percentcomplete 10;
 
-																Export_Reg_Config -Reg_Path "exefile" -Backup_Path "$Destination_folder\Backup_HKRoot_EXEFile.reg"
-																Export_Reg_Config -Reg_Path "Microsoft.PowerShellScript.1" -Backup_Path "$Destination_folder\Backup_HKRoot_PowerShellScript.reg"
-																Export_Reg_Config -Reg_Path "VBSFile" -Backup_Path "$Destination_folder\Backup_HKRoot_VBSFile.reg"
-																Export_Reg_Config -Reg_Path "Msi.Package" -Backup_Path "$Destination_folder\Backup_HKRoot_Msi.reg"
-																Export_Reg_Config -Reg_Path "CompressedFolder" -Backup_Path "$Destination_folder\Backup_HKRoot_CompressedFolder.reg"
-																Export_Reg_Config -Reg_Path "WinRAR.ZIP" -Backup_Path "$Destination_folder\Backup_HKRoot_WinRAR.reg"
-																Export_Reg_Config -Reg_Path "Directory" -Backup_Path "$Destination_folder\Backup_HKRoot_Directory.reg"						
+																Export_Reg_Config -Reg_Path "exefile" -Backup_Path "$Backup_Folder\Backup_HKRoot_EXEFile.reg"
+																Export_Reg_Config -Reg_Path "Microsoft.PowerShellScript.1" -Backup_Path "$Backup_Folder\Backup_HKRoot_PowerShellScript.reg"
+																Export_Reg_Config -Reg_Path "VBSFile" -Backup_Path "$Backup_Folder\Backup_HKRoot_VBSFile.reg"
+																Export_Reg_Config -Reg_Path "Msi.Package" -Backup_Path "$Backup_Folder\Backup_HKRoot_Msi.reg"
+																Export_Reg_Config -Reg_Path "CompressedFolder" -Backup_Path "$Backup_Folder\Backup_HKRoot_CompressedFolder.reg"
+																Export_Reg_Config -Reg_Path "WinRAR.ZIP" -Backup_Path "$Backup_Folder\Backup_HKRoot_WinRAR.reg"
+																Export_Reg_Config -Reg_Path "Directory" -Backup_Path "$Backup_Folder\Backup_HKRoot_Directory.reg"						
 
 																write-progress -activity $Progress_Activity  -percentcomplete 15;	
 																
@@ -483,7 +485,8 @@ Else
 
 																If($List_Drive -ne $null){Remove-PSDrive $List_Drive}
 
-																write-progress -activity $Progress_Activity  -percentcomplete 100;											
+																write-progress -activity $Progress_Activity  -percentcomplete 100;	
+																copy-item $Log_File $Destination_folder -Force																
 															}													
 													}
 												Else
